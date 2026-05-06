@@ -5,12 +5,22 @@ import type { Card } from "@/lib/kanban";
 
 type KanbanCardProps = {
   card: Card;
+  stageLabel: string;
   onDelete: (cardId: string) => void;
 };
 
-export const KanbanCard = ({ card, onDelete }: KanbanCardProps) => {
+const pickTags = (title: string) => {
+  const normalized = title.toLowerCase();
+  if (normalized.includes("design")) return ["UI", "Design"];
+  if (normalized.includes("qa")) return ["QA", "Check"];
+  if (normalized.includes("ship")) return ["Release", "MVP"];
+  return ["Task", "MVP"];
+};
+
+export const KanbanCard = ({ card, stageLabel, onDelete }: KanbanCardProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id });
+  const tags = pickTags(card.title);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -22,9 +32,9 @@ export const KanbanCard = ({ card, onDelete }: KanbanCardProps) => {
       ref={setNodeRef}
       style={style}
       className={clsx(
-        "rounded-2xl border border-transparent bg-white px-4 py-4 shadow-[0_12px_24px_rgba(3,33,71,0.08)]",
+        "rounded-lg border border-[#e7eaf1] bg-white px-3 py-3 shadow-sm",
         "transition-all duration-150",
-        isDragging && "opacity-60 shadow-[0_18px_32px_rgba(3,33,71,0.16)]"
+        isDragging && "opacity-60 shadow-md"
       )}
       {...attributes}
       {...listeners}
@@ -32,20 +42,33 @@ export const KanbanCard = ({ card, onDelete }: KanbanCardProps) => {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h4 className="font-display text-base font-semibold text-[var(--navy-dark)]">
+          <h4 className="font-display text-sm font-semibold text-[var(--navy-dark)]">
             {card.title}
           </h4>
-          <p className="mt-2 text-sm leading-6 text-[var(--gray-text)]">
+          <div className="mt-2 flex flex-wrap gap-1">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded bg-[#eef2fa] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-[#51607a]"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <p className="mt-1 text-xs leading-5 text-[var(--gray-text)]">
             {card.details}
+          </p>
+          <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7b879e]">
+            Stage: {stageLabel}
           </p>
         </div>
         <button
           type="button"
           onClick={() => onDelete(card.id)}
-          className="rounded-full border border-transparent px-2 py-1 text-xs font-semibold text-[var(--gray-text)] transition hover:border-[var(--stroke)] hover:text-[var(--navy-dark)]"
+          className="rounded-md border border-transparent px-2 py-1 text-[11px] font-semibold text-[var(--gray-text)] transition hover:border-[var(--stroke)] hover:text-[var(--navy-dark)]"
           aria-label={`Delete ${card.title}`}
         >
-          Remove
+          Delete
         </button>
       </div>
     </article>
